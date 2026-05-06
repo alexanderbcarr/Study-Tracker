@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Tracker — Final Stretch</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252a38;
+    --accent: #e8ff47;
+    --accent2: #47b8ff;
+    --accent3: #ff6b6b;
+    --text: #e8eaf0;
+    --muted: #5a607a;
+    --exam-color: #ff6b6b;
+    --study-color: #47b8ff;
+    --rest-color: #a78bfa;
+    --done-opacity: 0.45;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .progress-bar-wrap {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* EXAM COUNTDOWN GRID */
+  .countdown-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .exams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .exam-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .exam-card:hover { border-color: var(--accent); }
+
+  .exam-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--exam-color);
+  }
+
+  .exam-card.past::before { background: var(--muted); }
+
+  .exam-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .exam-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .exam-countdown {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .exam-card.past .exam-countdown {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .exam-countdown-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.2rem;
+  }
+
+  .exam-target {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent2);
+    margin-top: 0.5rem;
+  }
+
+  /* WORKFLOW */
+  .workflow-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .workflow-steps {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .workflow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: none;
+    padding: 0.9rem 1.1rem;
+    flex: 1;
+    min-width: 130px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .workflow-step:first-child { border-radius: 8px 0 0 8px; }
+  .workflow-step:last-child { border-radius: 0 8px 8px 0; border-right: 1px solid var(--border); }
+  .workflow-step:hover { background: var(--surface2); }
+
+  .workflow-step.active-step {
+    background: var(--surface2);
+    border-color: var(--accent);
+    z-index: 1;
+  }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+
+  .step-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .step-desc {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* POMODORO TIMER */
+  .timer-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .timer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .timer-display {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .timer-svg {
+    transform: rotate(-90deg);
+  }
+
+  .timer-track { fill: none; stroke: var(--border); }
+  .timer-progress { fill: none; stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.5s linear; }
+  .timer-progress.break { stroke: var(--accent2); }
+  .timer-progress.long-break { stroke: var(--rest-color); }
+
+  .timer-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .timer-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .timer-mode-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.3rem;
+  }
+
+  .timer-controls {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .timer-mode-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+
+  .mode-tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .mode-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.06); }
+  .mode-tab:hover { border-color: var(--text); color: var(--text); }
+
+  .timer-btn-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.55rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f14;
+    font-weight: 700;
+  }
+
+  .btn-primary:hover { background: #d4e83e; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+
+  .pomo-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .pomo-dots {
+    display: inline-flex;
+    gap: 4px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+
+  .pomo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .pomo-dot.filled { background: var(--accent); }
+
+  /* STUDY PLAN */
+  .plan-section { margin-bottom: 2.5rem; }
+
+  .day-block {
+    margin-bottom: 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .day-block.today { border-color: var(--accent); }
+  .day-block.done { opacity: var(--done-opacity); }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  .day-header:hover { background: var(--surface2); }
+
+  .day-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    min-width: 90px;
+  }
+
+  .day-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .day-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .tag-exam { background: rgba(255,107,107,0.15); color: var(--exam-color); }
+  .tag-prep { background: rgba(71,184,255,0.15); color: var(--accent2); }
+  .tag-rest { background: rgba(167,139,250,0.15); color: var(--rest-color); }
+  .tag-study { background: rgba(71,184,255,0.1); color: var(--accent2); }
+  .tag-review { background: rgba(232,255,71,0.1); color: var(--accent); }
+  .tag-today { background: rgba(232,255,71,0.2); color: var(--accent); border: 1px solid rgba(232,255,71,0.4); }
+
+  .day-chevron {
+    color: var(--muted);
+    transition: transform 0.2s;
+    font-size: 0.7rem;
+  }
+
+  .day-block.expanded .day-chevron { transform: rotate(180deg); }
+
+  .day-body {
+    display: none;
+    padding: 0.8rem 1.1rem 1rem;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  .day-block.expanded .day-body { display: block; }
+
+  .task-list { list-style: none; }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .task-item:last-child { border-bottom: none; }
+
+  .task-check {
+    appearance: none;
+    width: 15px; height: 15px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.15s;
+  }
+
+  .task-check:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .task-check:checked::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0d0f14;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 15px;
+    text-align: center;
+  }
+
+  .task-label {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .task-check:checked + .task-label {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .day-notes {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .notes-textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .notes-textarea:focus { border-color: var(--accent); }
+  .notes-textarea::placeholder { color: var(--muted); }
+
+  .day-mark-done {
+    margin-top: 0.8rem;
+  }
+
+  .btn-sm {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.08); }
+
+  .today-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    background: var(--accent);
+    color: #0d0f14;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Notification */
+  .notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.4rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    z-index: 1000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    max-width: 280px;
+  }
+
+  .notification.show { transform: translateY(0); opacity: 1; }
+  .notif-title { font-weight: 700; margin-bottom: 0.2rem; }
+  .notif-body { color: var(--muted); }
+
+  @media (max-width: 600px) {
+    .timer-card { flex-direction: column; }
+    .exams-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div>
+        <h1>Study<span>OS</span></h1>
+        <p class="subtitle">// Final exam sprint — May 2025 · Target: 70% across all modules</p>
+      </div>
+      <div style="text-align:right;">
+        <div id="current-date" style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);"></div>
+        <div id="current-time" style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;margin-top:0.2rem;"></div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="global-progress" style="width:0%"></div></div>
+      <span class="progress-label" id="progress-label">0 / 0 tasks done</span>
+    </div>
+  </header>
+
+  <!-- EXAM COUNTDOWNS -->
+  <section class="countdown-section">
+    <div class="section-label">Exam Countdowns</div>
+    <div class="exams-grid" id="exams-grid"></div>
+  </section>
+
+  <!-- WORKFLOW -->
+  <section class="workflow-section">
+    <div class="section-label">Study Workflow</div>
+    <div class="workflow-steps" id="workflow-steps">
+      <div class="workflow-step" data-step="0">
+        <div class="step-num">01</div>
+        <div class="step-title">Read & Highlight</div>
+        <div class="step-desc">First pass through notes, mark key concepts</div>
+      </div>
+      <div class="workflow-step" data-step="1">
+        <div class="step-num">02</div>
+        <div class="step-title">Summarise</div>
+        <div class="step-desc">Rewrite each topic in your own words</div>
+      </div>
+      <div class="workflow-step" data-step="2">
+        <div class="step-num">03</div>
+        <div class="step-title">Active Recall</div>
+        <div class="step-desc">Close notes, quiz yourself on each topic</div>
+      </div>
+      <div class="workflow-step" data-step="3">
+        <div class="step-num">04</div>
+        <div class="step-title">Spaced Review</div>
+        <div class="step-desc">Revisit yesterday's topics before new ones</div>
+      </div>
+      <div class="workflow-step" data-step="4">
+        <div class="step-num">05</div>
+        <div class="step-title">Past Papers</div>
+        <div class="step-desc">Practice exam-style Q&As under timed conditions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POMODORO TIMER -->
+  <section class="timer-section">
+    <div class="section-label">Pomodoro Timer</div>
+    <div class="timer-card">
+      <div class="timer-display">
+        <svg class="timer-svg" width="130" height="130" viewBox="0 0 130 130">
+          <circle class="timer-track" cx="65" cy="65" r="56" stroke-width="5"/>
+          <circle class="timer-progress" id="timer-ring" cx="65" cy="65" r="56" stroke-width="5" stroke-dasharray="351.86" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-text">
+          <div class="timer-time" id="timer-display">25:00</div>
+          <div class="timer-mode-label" id="timer-mode-label">Focus</div>
+        </div>
+      </div>
+      <div class="timer-controls">
+        <div class="timer-mode-tabs">
+          <button class="mode-tab active" data-mode="focus" data-duration="25">Focus 25m</button>
+          <button class="mode-tab" data-mode="short" data-duration="5">Break 5m</button>
+          <button class="mode-tab" data-mode="long" data-duration="15">Long 15m</button>
+        </div>
+        <div class="timer-btn-row">
+          <button class="btn btn-primary" id="timer-start">Start</button>
+          <button class="btn btn-ghost" id="timer-reset">Reset</button>
+        </div>
+        <div class="pomo-counter">
+          Session <span id="pomo-session-num">1</span> of 4 today
+          <span class="pomo-dots" id="pomo-dots"></span>
+        </div>
+        <div style="margin-top:0.5rem;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);">
+          4 pomodoros → long break · Target: 70%
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDY PLAN -->
+  <section class="plan-section">
+    <div class="section-label">Study Plan</div>
+    <div id="plan-container"></div>
+  </section>
+
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification">
+  <div class="notif-title" id="notif-title"></div>
+  <div class="notif-body" id="notif-body"></div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const EXAMS = [
+  { id: 'cs355', name: 'CS355', date: '2026-05-08', time: '09:00', color: 'var(--exam-color)' },
+  { id: 'cs240', name: 'CS240', date: '2026-05-16', time: '15:30', color: 'var(--accent2)' },
+  { id: 'cs230', name: 'CS230', date: '2026-05-19', time: '15:30', color: 'var(--rest-color)' },
+  { id: 'cs211', name: 'CS211', date: '2026-05-20', time: '15:30', color: '#ffb347' },
+  { id: 'cs355b', name: 'CS355 (2nd)', date: '2026-05-21', time: '15:30', color: 'var(--exam-color)' },
+  { id: 'cs335', name: 'CS335', date: '2026-05-27', time: '09:00', color: '#47ffb8' },
+];
+
+const PLAN = [
+  {
+    id: 'wed-7',
+    date: 'Wed 7 May',
+    isoDate: '2026-05-07',
+    title: 'CS355 — Full Notes Review + Active Recall',
+    tag: 'prep',
+    tasks: [
+      'Full read-through of CS355 notes (Session 1)',
+      'Highlight & annotate key concepts',
+      'Summarise each topic in own words (Session 2)',
+      'Active recall — close notes, quiz yourself (Session 3)',
+      'Spaced review of any weak areas (Session 4)',
+    ]
+  },
+  {
+    id: 'thu-8',
+    date: 'Thu 8 May',
+    isoDate: '2026-05-08',
+    title: 'CS355 Exam — Light morning review only',
+    tag: 'exam',
+    tasks: [
+      'Light review of condensed CS355 notes (morning only)',
+      'No new material — review only',
+      'Rest, eat well, sleep early',
+      '✦ CS355 Exam',
+    ]
+  },
+  {
+    id: 'fri-9',
+    date: 'Fri 9 May',
+    isoDate: '2026-05-09',
+    title: 'Recovery + CS240 First Read',
+    tag: 'rest',
+    tasks: [
+      'Recovery — rest in the morning',
+      'CS240 notes: first read-through only (no pressure)',
+      'Mark key topics for deeper dive',
+    ]
+  },
+  {
+    id: 'sat-sun-10-11',
+    date: 'Sat–Sun 10–11 May',
+    isoDate: '2026-05-10',
+    title: 'CS240 Deep Dive',
+    tag: 'study',
+    tasks: [
+      'CS240: Summarise all topics into condensed notes (Sat)',
+      'CS240: Active recall on all summarised material (Sat)',
+      'CS240: Make final condensed revision notes (Sun)',
+      'CS240: Spaced review — revisit any weak areas (Sun)',
+    ]
+  },
+  {
+    id: 'mon-tue-12-13',
+    date: 'Mon–Tue 12–13 May',
+    isoDate: '2026-05-12',
+    title: 'CS240 Active Recall + CS230 First Pass',
+    tag: 'study',
+    tasks: [
+      'CS240: Active recall sessions (Mon)',
+      'CS240: Past papers practice (Mon)',
+      'CS230: First read-through of notes (Tue)',
+      'CS230: Highlight and mark key concepts (Tue)',
+    ]
+  },
+  {
+    id: 'wed-thu-14-15',
+    date: 'Wed–Thu 14–15 May',
+    isoDate: '2026-05-14',
+    title: 'CS240 Final Review + Light CS230',
+    tag: 'review',
+    tasks: [
+      'CS240: Final light review of all condensed notes',
+      'CS240: Past paper or active recall session',
+      'CS230: Light reading through first topics',
+      'Early night Thursday — CS240 exam Fri',
+    ]
+  },
+  {
+    id: 'fri-16',
+    date: 'Fri 16 May',
+    isoDate: '2026-05-16',
+    title: 'CS240 Exam — Morning review only',
+    tag: 'exam',
+    tasks: [
+      'CS240: Read condensed notes (morning only)',
+      'No new material',
+      '✦ CS240 Exam @ 15:30',
+    ]
+  },
+  {
+    id: 'sat-sun-17-18',
+    date: 'Sat–Sun 17–18 May',
+    isoDate: '2026-05-17',
+    title: 'CS230 Intensive',
+    tag: 'study',
+    tasks: [
+      'CS230: Full notes read-through (Sat)',
+      'CS230: Summarise all topics (Sat)',
+      'CS230: Active recall — quiz yourself on all topics (Sun)',
+      'CS230: Past papers (Sun)',
+    ]
+  },
+  {
+    id: 'mon-19',
+    date: 'Mon 19 May',
+    isoDate: '2026-05-19',
+    title: 'CS230 Exam + Start CS211',
+    tag: 'exam',
+    tasks: [
+      'CS230: Light review morning only',
+      '✦ CS230 Exam @ 15:30',
+      'CS211: Start notes read-through (evening)',
+    ]
+  },
+  {
+    id: 'tue-20',
+    date: 'Tue 20 May',
+    isoDate: '2026-05-20',
+    title: 'CS211 Exam + Pivot to CS355',
+    tag: 'exam',
+    tasks: [
+      'CS211: Morning review only',
+      '✦ CS211 Exam @ 15:30',
+      'CS355: Begin revision (evening)',
+    ]
+  },
+  {
+    id: 'wed-21',
+    date: 'Wed 21 May',
+    isoDate: '2026-05-21',
+    title: 'CS355 Exam — Light active recall',
+    tag: 'exam',
+    tasks: [
+      'CS355: Light active recall morning only',
+      'No new material',
+      '✦ CS355 Exam @ 15:30',
+    ]
+  },
+  {
+    id: 'thu-mon-22-26',
+    date: 'Thu–Mon 22–26 May',
+    isoDate: '2026-05-22',
+    title: 'CS335 Full Revision',
+    tag: 'study',
+    tasks: [
+      'CS335: Full notes read-through (Thu)',
+      'CS335: Summarise all topics (Fri)',
+      'CS335: Active recall sessions (Sat)',
+      'CS335: Spaced review (Sun)',
+      'CS335: Past papers under timed conditions (Mon)',
+      'You have time — use it well.',
+    ]
+  },
+  {
+    id: 'tue-27',
+    date: 'Tue 27 May',
+    isoDate: '2026-05-27',
+    title: 'CS335 Exam — Calm morning',
+    tag: 'exam',
+    tasks: [
+      'CS335: Review condensed notes (Mon night — keep it light)',
+      'Early sleep Monday',
+      'Calm morning — no cramming',
+      '✦ CS335 Exam @ 09:00',
+    ]
+  },
+];
+
+// ─── STORAGE ────────────────────────────────────────────
+function getState() {
+  try {
+    return JSON.parse(localStorage.getItem('studyos_state') || '{}');
+  } catch { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem('studyos_state', JSON.stringify(state));
+}
+
+function getTimerState() {
+  try {
+    return JSON.parse(localStorage.getItem('studyos_timer') || '{}');
+  } catch { return {}; }
+}
+
+function saveTimerState(obj) {
+  localStorage.setItem('studyos_timer', JSON.stringify(obj));
+}
+
+// ─── CLOCK ──────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('current-time').textContent =
+    now.toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('current-date').textContent =
+    now.toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// ─── EXAM COUNTDOWNS ────────────────────────────────────
+function renderExams() {
+  const grid = document.getElementById('exams-grid');
+  const now = new Date();
+
+  grid.innerHTML = EXAMS.map(exam => {
+    const examDt = new Date(exam.date + 'T' + exam.time + ':00');
+    const diff = examDt - now;
+    const past = diff < 0;
+    let countdownHtml = '';
+
+    if (past) {
+      countdownHtml = '<div class="exam-countdown">Done</div>';
+    } else {
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      if (days > 0) {
+        countdownHtml = `<div class="exam-countdown">${days}<span style="font-size:0.8rem">d</span> ${hours}<span style="font-size:0.8rem">h</span></div>`;
+      } else {
+        countdownHtml = `<div class="exam-countdown">${hours}<span style="font-size:0.8rem">h</span> ${mins}<span style="font-size:0.8rem">m</span></div>`;
+      }
+    }
+
+    return `
+      <div class="exam-card${past ? ' past' : ''}" style="--exam-color:${exam.color}">
+        <div class="exam-name">${exam.name}</div>
+        <div class="exam-date">${exam.date} @ ${exam.time}</div>
+        ${countdownHtml}
+        <div class="exam-countdown-label">${past ? 'completed' : 'remaining'}</div>
+        <div class="exam-target">Target: 70%</div>
+      </div>`;
+  }).join('');
+}
+
+// ─── WORKFLOW ───────────────────────────────────────────
+function initWorkflow() {
+  const state = getState();
+  const activeStep = state.activeWorkflowStep ?? -1;
+  document.querySelectorAll('.workflow-step').forEach(el => {
+    const idx = parseInt(el.dataset.step);
+    if (idx === activeStep) el.classList.add('active-step');
+    el.addEventListener('click', () => {
+      const s = getState();
+      s.activeWorkflowStep = (s.activeWorkflowStep === idx) ? -1 : idx;
+      saveState(s);
+      document.querySelectorAll('.workflow-step').forEach(e => e.classList.remove('active-step'));
+      if (s.activeWorkflowStep !== -1) {
+        document.querySelector(`.workflow-step[data-step="${s.activeWorkflowStep}"]`).classList.add('active-step');
+      }
+    });
+  });
+}
+
+// ─── POMODORO ───────────────────────────────────────────
+const MODES = {
+  focus: { label: 'Focus', duration: 25 * 60, ringClass: '' },
+  short:  { label: 'Short Break', duration: 5 * 60, ringClass: 'break' },
+  long:   { label: 'Long Break', duration: 15 * 60, ringClass: 'long-break' },
+};
+
+let timerState = {
+  mode: 'focus',
+  timeLeft: 25 * 60,
+  running: false,
+  sessionsDone: 0,
+};
+let timerInterval = null;
+const CIRCUMFERENCE = 2 * Math.PI * 56; // 351.86
+
+function loadTimerState() {
+  const saved = getTimerState();
+  if (saved.mode) timerState.mode = saved.mode;
+  if (saved.sessionsDone !== undefined) timerState.sessionsDone = saved.sessionsDone;
+  timerState.timeLeft = MODES[timerState.mode].duration;
+  timerState.running = false;
+}
+
+function saveTimer() {
+  saveTimerState({ mode: timerState.mode, sessionsDone: timerState.sessionsDone });
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60).toString().padStart(2, '0');
+  const sec = (s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function updateTimerUI() {
+  const total = MODES[timerState.mode].duration;
+  const frac = timerState.timeLeft / total;
+  const offset = CIRCUMFERENCE * (1 - frac);
+  const ring = document.getElementById('timer-ring');
+  ring.style.strokeDashoffset = offset;
+  ring.className = 'timer-progress ' + MODES[timerState.mode].ringClass;
+  document.getElementById('timer-display').textContent = formatTime(timerState.timeLeft);
+  document.getElementById('timer-mode-label').textContent = MODES[timerState.mode].label;
+  document.getElementById('timer-start').textContent = timerState.running ? 'Pause' : 'Start';
+  document.getElementById('pomo-session-num').textContent = (timerState.sessionsDone % 4) + 1;
+  renderPomoDots();
+}
+
+function renderPomoDots() {
+  const dotsEl = document.getElementById('pomo-dots');
+  const filled = timerState.sessionsDone % 4;
+  dotsEl.innerHTML = Array.from({length: 4}, (_, i) =>
+    `<span class="pomo-dot${i < filled ? ' filled' : ''}"></span>`
+  ).join('');
+}
+
+function initTimer() {
+  loadTimerState();
+
+  document.querySelectorAll('.mode-tab').forEach(btn => {
+    if (btn.dataset.mode === timerState.mode) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      if (timerState.running) return;
+      timerState.mode = btn.dataset.mode;
+      timerState.timeLeft = MODES[timerState.mode].duration;
+      document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      saveTimer();
+      updateTimerUI();
+    });
+  });
+
+  document.getElementById('timer-start').addEventListener('click', () => {
+    if (timerState.running) {
+      clearInterval(timerInterval);
+      timerState.running = false;
+    } else {
+      timerState.running = true;
+      timerInterval = setInterval(tick, 1000);
+    }
+    updateTimerUI();
+  });
+
+  document.getElementById('timer-reset').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerState.running = false;
+    timerState.timeLeft = MODES[timerState.mode].duration;
+    updateTimerUI();
+  });
+
+  updateTimerUI();
+}
+
+function tick() {
+  if (timerState.timeLeft > 0) {
+    timerState.timeLeft--;
+    updateTimerUI();
+  } else {
+    clearInterval(timerInterval);
+    timerState.running = false;
+    if (timerState.mode === 'focus') {
+      timerState.sessionsDone++;
+      saveTimer();
+      const sessNum = timerState.sessionsDone;
+      if (sessNum % 4 === 0) {
+        showNotification('🎉 4 Pomodoros done!', 'Time for a long break. You earned it.');
+        timerState.mode = 'long';
+      } else {
+        showNotification('✓ Focus session done!', 'Take a 5-minute break.');
+        timerState.mode = 'short';
+      }
+    } else {
+      showNotification('Break over!', 'Ready for the next focus block?');
+      timerState.mode = 'focus';
+    }
+    timerState.timeLeft = MODES[timerState.mode].duration;
+    document.querySelectorAll('.mode-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === timerState.mode);
+    });
+    updateTimerUI();
+    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA...').play(); } catch(e) {}
+  }
+}
+
+// ─── PLAN ───────────────────────────────────────────────
+function getTodayISO() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function renderPlan() {
+  const state = getState();
+  const today = getTodayISO();
+  const container = document.getElementById('plan-container');
+
+  container.innerHTML = PLAN.map(day => {
+    const isToday = day.isoDate === today;
+    const isDone = state[day.id + '_done'];
+    const isExpanded = state[day.id + '_expanded'] || isToday;
+    const notes = state[day.id + '_notes'] || '';
+
+    const tasks = day.tasks.map((task, i) => {
+      const taskId = `${day.id}_task_${i}`;
+      const checked = state[taskId] ? 'checked' : '';
+      return `<li class="task-item">
+        <input type="checkbox" class="task-check" id="${taskId}" ${checked} onchange="toggleTask('${day.id}', ${i}, this.checked)">
+        <label class="task-label" for="${taskId}">${task}</label>
+      </li>`;
+    }).join('');
+
+    const tagClass = `tag-${day.tag}`;
+    const tagLabel = day.tag.charAt(0).toUpperCase() + day.tag.slice(1);
+
+    return `<div class="day-block${isToday ? ' today' : ''}${isDone ? ' done' : ''}${isExpanded ? ' expanded' : ''}" id="block-${day.id}">
+      <div class="day-header" onclick="toggleExpand('${day.id}')">
+        <span class="day-date">${day.date}</span>
+        <span class="day-title">${day.title}</span>
+        ${isToday ? '<span class="today-badge">Today</span>' : ''}
+        <span class="day-tag ${tagClass}">${tagLabel}</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">${tasks}</ul>
+        <div class="day-notes">
+          <textarea class="notes-textarea" placeholder="Notes for this day…" onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
+        </div>
+        <div class="day-mark-done">
+          <button class="btn-sm${isDone ? ' active' : ''}" onclick="toggleDone('${day.id}')">
+            ${isDone ? '✓ Marked Done' : 'Mark Day Done'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateProgress();
+}
+
+function toggleExpand(dayId) {
+  const state = getState();
+  const key = dayId + '_expanded';
+  state[key] = !state[key];
+  saveState(state);
+  const block = document.getElementById('block-' + dayId);
+  block.classList.toggle('expanded', state[key]);
+}
+
+function toggleTask(dayId, taskIdx, checked) {
+  const state = getState();
+  state[`${dayId}_task_${taskIdx}`] = checked;
+  saveState(state);
+  updateProgress();
+}
+
+function saveNotes(dayId, value) {
+  const state = getState();
+  state[dayId + '_notes'] = value;
+  saveState(state);
+}
+
+function toggleDone(dayId) {
+  const state = getState();
+  state[dayId + '_done'] = !state[dayId + '_done'];
+  saveState(state);
+  renderPlan();
+}
+
+function updateProgress() {
+  const state = getState();
+  let total = 0, done = 0;
+  PLAN.forEach(day => {
+    day.tasks.forEach((_, i) => {
+      total++;
+      if (state[`${day.id}_task_${i}`]) done++;
+    });
+  });
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('global-progress').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${done} / ${total} tasks done (${pct}%)`;
+}
+
+// ─── NOTIFICATION ───────────────────────────────────────
+let notifTimeout;
+function showNotification(title, body) {
+  const el = document.getElementById('notification');
+  document.getElementById('notif-title').textContent = title;
+  document.getElementById('notif-body').textContent = body;
+  el.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ─── INIT ───────────────────────────────────────────────
+updateClock();
+setInterval(updateClock, 1000);
+renderExams();
+setInterval(renderExams, 30000);
+initWorkflow();
+initTimer();
+renderPlan();
+</script>
+</body>
+</html>
